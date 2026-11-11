@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>我的 TaskFlow</title>
+</head>
+<body>
+    <main>
+        <h1>每日学习打卡</h1>
+        <p>累计次数 <span id="count">0</span></p>
+        <button id="check-in" type="button">打卡一次</button>
+        <button id="clear" type="button">清零</button>
+    </main>
+    <script>
+        let count=0;
+        
+        const countOutput = document.querySelector("#count");  //#按照ID查找元素
+        const checkInButton = document.querySelector("#check-in");;
+        const clearButton = document.querySelector("#clear");
+
+        checkInButton.addEventListener("click", () => {  //登记点击处理函数
+            count += 1;
+            countOutput.textContent = String(count);  //textContent把新数字显示到页面上
+        });
+
+        clearButton.addEventListener("click", () => {
+            count = 0;
+            countOutput.textContent = String(count);
+        })
+
+
+    </script>
+</body>
+</html>
+
