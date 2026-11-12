@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="zh-CN">
+<script src="./app.js" defer></script>
+<link rel="stylesheet" href="./style.css">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>我的 TaskFlow</title>
+</head>
+<body>
+    <main>
+        <h1>TaskFlow</h1>
+
+        <form id="task-form">
+        <label for="task-title">任务标题</label>
+        <input id="task-title" type="text" required>
+        <button type="submit">添加</button>
+        </form>
+
+        <label for="task-filter">显示任务</label>
+        <select id="task-filter">
+            <option value="all">全部</option>
+            <option value="pending">待完成</option>
+            <option value="completed">已完成</option>
+        </select>
+        
+        <label for="task-search">搜索任务</label>
+        <input id="task-search" type="search" placeholder="输入标题关键词">
+
+        <p>待完成 <span id="remaining-count">0</span> 条</p>
+        <ul id="task-list"></ul>
+    </main>
+</body>
+</html>
+
