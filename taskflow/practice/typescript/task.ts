@@ -4,11 +4,23 @@ type Task = {
     completed: boolean;
 };
 
-function createTask(id: number, title: string): Task {
+function createTask(id: number, title: string): Task | null {
+    if (!Number.isSafeInteger(id) || id <= 0) {
+        return null;
+    }
+
+    const trimmedTitle = title.trim();
+
+    if (trimmedTitle === ""){
+        return null;
+    } else if (trimmedTitle.length > 20) {
+        return null;
+    }
+
     return {
         id,
         title: title.trim(),
-        completed: false,
+        completed: false
     };
 }
 
@@ -16,17 +28,23 @@ function countPending(tasks: Task[]): number {
     return tasks.filter((task) => !task.completed).length
 }
 
-const tasks: Task[] = [
-    createTask(1, " 学习 TypeScript "),
-    createTask(2, "练习函数类型")
-];
+const tasks: Task[] = [];
 
+const result = createTask(1, " 学习 TypeScript");
+
+
+if (result != null) {
+    tasks.push(result);
+    console.log("创建成功：", result.title);
+} else {
+    console.log("创建失败");
+}
 
 console.table(tasks);
+console.log("待完成：", countPending(tasks));
 
-console.log("初始待完成：", countPending(tasks));
-
-tasks[0].completed = true;
-console.log("完成一条后：", countPending(tasks));
-
-console.log("空数组：", countPending([]));
+console.log("空白标题：", createTask(2, "   "));
+console.log("零 ID：", createTask(0, "练习校验"));
+console.log("小数 ID：", createTask(1.5, "练习校验"));
+console.log("20 个字符：", createTask(3, "a".repeat(20)));
+console.log("21 个字符：", createTask(4, "a".repeat(21)));
