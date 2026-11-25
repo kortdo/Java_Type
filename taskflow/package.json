@@ -2,12 +2,12 @@
   "name": "taskflow",
   "version": "1.0.0",
   "description": "",
-  "main": "app.js",
   "scripts": {
     "test": "playwright test",
     "dev": "vite",
     "build": "vite build --base=/Java_Type/",
-    "preview": "vite preview --base=/Java_Type/"
+    "preview": "vite preview --base=/Java_Type/",
+    "typecheck": "tsc -p ."
   },
   "keywords": [],
   "author": "",

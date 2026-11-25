@@ -1,26 +1,31 @@
+import { countPending, parseSavedTasks } from "./task-model.mts";
+import { bindTaskForm } from "./task-form.mts";
+import type { Task } from "./task-model.mts";
 
-const form = document.querySelector("#task-form");
-const input = document.querySelector("#task-title");
-const list = document.querySelector("#task-list");
+function requireElement<T extends Element>(
+    selector: string,
+    elementType: new () => T,
+    root: ParentNode = document,
+): T {
+    const element = root.querySelector(selector);
+
+    if (!(element instanceof elementType)) {
+        throw new Error(`找不到预期的页面元素 ${selector}`);
+    }
+
+    return element;
+}
+
+const list = requireElement("#task-list", HTMLUListElement);
 
 const TASK_STORAGE_KEY = "taskflow.tasks";
-let tasks = loadTasks();
+let tasks: Task[] = loadTasks();
 let nextTaskId = tasks.reduce((maxId, task) => Math.max(maxId, task.id), 0) + 1;   //reduce(函数，默认值)
 
 function loadTasks() {
     try {
-        const saved = JSON.parse(localStorage.getItem(TASK_STORAGE_KEY) ?? "[]");
-        if (!Array.isArray(saved)) {
-            return [];
-        }
-
-        return saved.filter((task) =>
-            Number.isSafeInteger(task?.id) &&
-        task.id > 0 &&
-        typeof task.title === "string" &&
-        typeof task.completed === "boolean"
-        );
-    } catch (error) {
+        return parseSavedTasks(localStorage.getItem(TASK_STORAGE_KEY));
+    } catch(error) {
         console.warn("无法读取任务", error);
         return [];
     }
@@ -34,23 +39,30 @@ function saveTasks() {
     }
 }
 
-const remainingCount = document.querySelector("#remaining-count")
+const remainingCount = requireElement("#remaining-count", HTMLSpanElement);
 function updateRemainingCount() {
-    const pending = tasks.filter((task) => !task.completed).length;   //arr.filter((element) => boolean)返回为真的所有元素
+    const pending = countPending(tasks);
     remainingCount.textContent = String(pending);
 }
 
-const taskFilter = document.querySelector("#task-filter");
+const taskFilter = requireElement("#task-filter", HTMLSelectElement);
 
-const taskSearch = document.querySelector("#task-search");
+const taskSearch = requireElement("#task-search", HTMLInputElement);
 
 function applyTaskFilter() {
     const status = taskFilter.value;
     const keyword = taskSearch.value.trim().toLowerCase();
 
     for (const item of list.children) {
-        const completed = item.querySelector('input[type="checkbox"]').checked;
-        const title = item.querySelector("label").textContent.toLowerCase();   //转成小写
+        if (!(item instanceof HTMLLIElement)) {
+            continue;
+        }
+
+        const checkbox = requireElement('input[type="checkbox"]', HTMLInputElement, item);
+        const label = requireElement("label", HTMLLabelElement, item);
+        const completed = checkbox.checked;
+        const title = (label.textContent ?? "").toLowerCase();
+
         const matchesTitle = title.includes(keyword);
 
         let matchesStatus = true;
@@ -67,29 +79,19 @@ function applyTaskFilter() {
 taskFilter.addEventListener("change", applyTaskFilter);
 taskSearch.addEventListener("input", applyTaskFilter)
 
-form.addEventListener("submit", (e) => {   //submit是表单提交事件，event是本次事件的对象，箭头指事件发生时要执行的操作
-    e.preventDefault();   //阻止默认提交行为
-
-    const title = input.value.trim();
-    if (title == "") {
-        return;
-    }
-    
+bindTaskForm((title) => {
     const task = { id: nextTaskId, title, completed: false};
     nextTaskId += 1;
     tasks.push(task);
     saveTasks();
-    const item = createTaskItem(task);
 
+    const item = createTaskItem(task);
     list.appendChild(item);
     updateRemainingCount();
     applyTaskFilter();
-
-    input.value = "";
-    input.focus();
 });
 
-function createTaskItem(task) {
+function createTaskItem(task: Task): HTMLLIElement {
     const item = document.createElement("li"); //li是
 
     const checkbox = document.createElement("input");
@@ -127,7 +129,7 @@ function createTaskItem(task) {
     editButton.textContent = "编辑";
 
     editButton.addEventListener("click", () => {
-        const enteredTitle = window.prompt("修改任务标题", taskTitle.textContent); //prompt带着原标题打开输入框
+        const enteredTitle = window.prompt("修改任务标题", task.title); //prompt带着原标题打开输入框
         if (enteredTitle === null) {
             return;
         }
@@ -155,9 +157,9 @@ updateRemainingCount();
 applyTaskFilter();
 
 
-const loadSamplesButton = document.querySelector("#load-samples");
-const sampleStatus = document.querySelector("#sample-status");
-const sampleList = document.querySelector("#sample-list");
+const loadSamplesButton = requireElement("#load-samples", HTMLButtonElement);
+const sampleStatus = requireElement("#sample-status", HTMLParagraphElement);
+const sampleList = requireElement("#sample-list", HTMLUListElement);
 
 loadSamplesButton.addEventListener("click", async () => {
     loadSamplesButton.disabled = true;
